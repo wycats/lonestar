@@ -26,7 +26,7 @@
         .bind('failed', function(e, reason) {
           $(this)
             .addClass('failed')
-            .append($('<p class="error">').text(reason.toString()));
+            .append($('<p class="error">').html("<p>" + reason.toString() + "</p><pre>" + reason.stack + "</pre>"));
         })
     })
     .bind('before', function() {

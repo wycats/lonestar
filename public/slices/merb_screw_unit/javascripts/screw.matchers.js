@@ -15,12 +15,30 @@ Screw.Matchers = (function($) {
       }
     },
     
+    exist: {
+      match: function(expected, actual) {
+        return actual.length > 0;
+      },
+      failure_message: function(expected, actual, not) {
+        return 'expected ' + $.print(actual) + (not ? ' to not ' : ' to ') + "exist";
+      }
+    },
+    
     have: {
       match: function(expected, actual) {
         return actual.find(expected).length > 0;
       },
       failure_message: function(expected, actual, not) {
         return 'expected ' + $.print(actual) + (not ? ' to not have ' : ' to have ') + $.print(expected);
+      }
+    },
+    
+    be_visible: {
+      match: function(expected, actual) {
+        return $(actual).is(":visible");
+      },
+      failure_message: function(expected, actual, not) {
+        return 'expected ' + $.print(actual) + (not ? ' to not ' : ' to ') + "be visible";
       }
     },
     
