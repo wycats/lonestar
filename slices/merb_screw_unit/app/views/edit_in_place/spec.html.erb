@@ -7,8 +7,17 @@ describe("Autocompleter", function() {
     expect($("p.edit_in_place")).to(exist);
   });
   
-  it("turns into an input box when clicked", function() {
-    $("p.edit_in_place").fireEvent("click");
-    expect($("p.edit_in_place")).to_not(be_visible);
-  })
+  describe("when clicked", function() {
+    before(function() {
+      $("p.edit_in_place").fireEvent("click");
+    })
+    
+    it("is hidden", function() {
+      expect($("p.edit_in_place")).to_not(be_visible);
+    });
+    
+    it("shows an input", function() {
+      expect($("body")).to(have, "input:text")
+    })
+  });
 })
