@@ -20,10 +20,19 @@ describe("Autocompleter", function() {
       expect($("body")).to(have, "input:text")
     });
     
-    it("hides the input if escape is pressed", function() {
-      $("input:text").focus();
-      $("input:text").fireEvent("keydown", {keyCode: 27});
-      expect($("body")).to_not(have, "input:text")
-    });
+    describe("when escape is pressed", function() {
+      before(function() {
+        $("input:text").focus();
+        $("input:text").fireEvent("keydown", {keyCode: 27});
+      })
+      
+      it("hides the input", function() {
+        expect("body").to_not(have, "input:text")
+      });
+      
+      it("shows the original <p> again", function() {
+        expect("p.edit_in_place").to(be_visible)
+      })
+    })
   });
 })
