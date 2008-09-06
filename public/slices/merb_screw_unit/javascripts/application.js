@@ -1,4 +1,6 @@
 jQuery(function($) {
+  $.metadata.setType("attr", "metadata");
+  
   $("p.edit_in_place").livequery("click", function() {
     $(this).hide().after(
       "<p class='in_place_form'><input type='text' class='editor' name='val' />" +
@@ -13,8 +15,16 @@ jQuery(function($) {
   })
   
   $("input.editor").livequery("keydown", function(e) {
+    var self = $(this);
     if(e.keyCode == 27) {
-      $(this).parent().trigger("cancel.editor")
+      self.parent().trigger("cancel.editor")
+    } else if(e.keyCode == 13) {
+      var url = self.parent().prev().metadata().put;
+      $.post(url, {val: self.val()}, function(json) {
+        if(json.success) {
+          self.parent().prev().html(json.result).end().trigger("cancel.editor");
+        }
+      }, "json");
     }
   });
   
