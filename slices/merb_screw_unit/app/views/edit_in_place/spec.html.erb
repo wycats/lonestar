@@ -10,7 +10,7 @@ describe("Autocompleter", function() {
   describe("when clicked", function() {
     before(function() {
       $("p.edit_in_place").fireEvent("click");
-    })
+    });
     
     it("is hidden", function() {
       expect($("p.edit_in_place")).to_not(be_visible);
@@ -24,7 +24,7 @@ describe("Autocompleter", function() {
       before(function() {
         $("input:text").focus();
         $("input:text").fireEvent("keydown", {keyCode: 27});
-      })
+      });
       
       it("hides the input", function() {
         expect("body").to_not(have, "input:text")
@@ -32,7 +32,7 @@ describe("Autocompleter", function() {
       
       it("shows the original <p> again", function() {
         expect("p.edit_in_place").to(be_visible)
-      })
-    })
+      });
+    });
   });
 })

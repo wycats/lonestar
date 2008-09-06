@@ -1,6 +1,6 @@
 Screw.Matchers = (function($) {
   var jquerize = function(obj) {
-    if(typeof obj == "string") return $(obj);
+    if(typeof obj == "string") return iframeWindow.$(obj);
     else return obj;
   }
   

@@ -4,6 +4,9 @@ jQuery(function($) {
   });
   
   $("input.editor").livequery("keydown", function(e) {
-    if(e.keyCode == 27) $(this).remove();
+    if(e.keyCode == 27) {
+      $(this).prev().show();
+      $(this).remove();
+    }
   })
 });
