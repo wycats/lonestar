@@ -13,12 +13,16 @@ describe("Autocompleter", function() {
     });
     
     it("is hidden", function() {
-      expect($("p.edit_in_place")).to_not(be_visible);
+      expect("p.edit_in_place").to_not(be_visible);
     });
     
     it("shows an input", function() {
-      expect($("body")).to(have, "input:text")
+      expect("body").to(have, "input:text");
     });
+    
+    it("shows a submit button", function() {
+      expect("body").to(have, "input:submit");
+    })
     
     describe("when escape is pressed", function() {
       before(function() {
