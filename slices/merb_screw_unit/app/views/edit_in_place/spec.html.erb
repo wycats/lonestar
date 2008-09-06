@@ -1,5 +1,14 @@
 describe("Autocompleter", function() {
+  before(function() {
+    $("body").html("<p class='edit_in_place'>Edit</p>");
+  });
+  
   it("starts out as an p.edit_in_place", function() {
     expect($("p.edit_in_place")).to(exist);
   });
+  
+  it("turns into an input box when clicked", function() {
+    $("p.edit_in_place").fireEvent("click");
+    expect($("p.edit_in_place")).to_not(be_visible);
+  })
 })
