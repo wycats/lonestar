@@ -1,7 +1,11 @@
 describe("Autocompleter", function() {
   before(function() {
-    $("body").html("<p class='edit_in_place'>Edit</p>");
+    this.originalHTML = $("body").html();
   });
+  
+  after(function() {
+    $("body").html(this.originalHTML);
+  })
   
   it("starts out as an p.edit_in_place", function() {
     expect($("p.edit_in_place")).to(exist);
@@ -27,7 +31,6 @@ describe("Autocompleter", function() {
     it("shows a cancel button", function() {
       expect("body").to(have, "input:button.cancel.editor")
     });
-    
     
     describe("when escape is pressed", function() {
       before(function() {
@@ -60,7 +63,7 @@ describe("Autocompleter", function() {
   
     describe("when enter is pressed, and the XHR is successful", function() {
       before(function() {
-        Screw.XHR.returns("{\"success\": true, \"result\": \"saved text\"}", 200);
+        Screw.XHR.returns("{\"success\": true, \"result\": \"saved text\"}", "application/json", 200);
         $("input.editor:submit").fireEvent("keydown", {keyCode: 13});
       });
       
