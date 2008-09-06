@@ -13,20 +13,28 @@ jQuery(function($) {
     $(this).prev().show();
     $(this).remove();
   })
+
+  $("p.in_place_form").livequery("submit.editor", function(e, self) {
+    var url = self.parent().prev().metadata().put;
+    $.post(url, {val: self.val()}, function(json) {
+      if(json.success) {
+        self.parent().prev().html(json.result).end().trigger("cancel.editor");
+      }
+    }, "json");
+  })
   
-  $("input.editor").livequery("keydown", function(e) {
+  $("input.editor:text").livequery("keydown", function(e) {
     var self = $(this);
     if(e.keyCode == 27) {
       self.parent().trigger("cancel.editor")
     } else if(e.keyCode == 13) {
-      var url = self.parent().prev().metadata().put;
-      $.post(url, {val: self.val()}, function(json) {
-        if(json.success) {
-          self.parent().prev().html(json.result).end().trigger("cancel.editor");
-        }
-      }, "json");
+      self.parent().trigger("submit.editor", [self])
     }
   });
+  
+  $("input.editor:submit").livequery("click", function() {
+    $(this).parent().trigger("submit.editor", [$(this)])
+  })
   
   $("input.editor.cancel").livequery("click", function() {
     $(this).parent().trigger("cancel.editor")
