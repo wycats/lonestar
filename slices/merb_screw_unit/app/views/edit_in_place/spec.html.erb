@@ -21,8 +21,13 @@ describe("Autocompleter", function() {
     });
     
     it("shows a submit button", function() {
-      expect("body").to(have, "input:submit");
-    })
+      expect("body").to(have, "input:submit.editor");
+    });
+    
+    it("shows a cancel button", function() {
+      expect("body").to(have, "input:button.cancel.editor")
+    });
+    
     
     describe("when escape is pressed", function() {
       before(function() {
