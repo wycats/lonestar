@@ -61,24 +61,46 @@ describe("Autocompleter", function() {
       });
     });
   
-    describe("when enter is pressed, and the XHR is successful", function() {
+    describe("when the XHR is successful", function() {
       before(function() {
         Screw.XHR.returns("{\"success\": true, \"result\": \"saved text\"}", "application/json", 200);
-        $("input.editor:submit").fireEvent("keydown", {keyCode: 13});
+      });
+
+      describe("when enter is pressed", function() {
+        before(function() {
+          $("input.editor:text").fireEvent("keydown", {keyCode: 13});
+        });
+        
+        it("hides the input", function() {
+          expect("body").to_not(have, "input:text");
+        });
+      
+        it("shows a <p> with the resulting text", function() {
+          expect("p.edit_in_place").to(contain_text, "saved text");
+        });
+      
+        it("calls the URL provided by metadata in the <p>", function() {
+          expect(Screw.XHR.url).to(equal, "/text/update")
+        });
       });
       
-      it("hides the input", function() {
-        expect("body").to_not(have, "input:text");
-      });
+      describe("when the submit button is clicked", function() {
+        before(function() {
+          $("input.editor:submit").fireEvent("click");
+        });
+        
+        it("hides the input", function() {
+          expect("body").to_not(have, "input:text");
+        });
       
-      it("shows a <p> with the resulting text", function() {
-        expect("p.edit_in_place").to(contain_text, "saved text");
-      });
+        it("shows a <p> with the resulting text", function() {
+          expect("p.edit_in_place").to(contain_text, "saved text");
+        });
       
-      it("calls the URL provided by metadata in the <p>", function() {
-        expect(Screw.XHR.url).to(equal, "/text/update")
-      });
-    });
-    
+        it("calls the URL provided by metadata in the <p>", function() {
+          expect(Screw.XHR.url).to(equal, "/text/update")
+        });
+      })
+    });    
   });
 })
