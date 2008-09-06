@@ -1,0 +1,404 @@
+Initial Commit
+
+--- Add first spec:
+
+describe("Autocompleter", function() {
+  it("starts out as an p.edit_in_place", function() {
+    expect("p.edit_in_place").to(exist);
+  });
+})
+
+--- Make it pass:
+
+<p class="edit_in_place">Edit</p>
+
+--- Add spec for click:
+
+before(function() {
+  $("body").html("<p class='edit_in_place'>Edit</p>");
+});
+
+it("turns into an input box when clicked", function() {
+  $("p.edit_in_place").fireEvent("click");
+  expect("p.edit_in_place").to_not(be_visible);
+})
+
+--- Make it pass (application.js):
+
+jQuery(function($) {
+  $("p.edit_in_place").livequery("click", function() {
+    $(this).hide();
+  });
+});
+
+--- Add spec for showing an input:
+
+---- Move initial spec into a "when clicked" describe block
+---- Move the fireEvent into a before function
+
+it("is hidden", function() {
+  expect("p.edit_in_place").to_not(be_visible);
+});
+
+it("shows an input", function() {
+  expect("body").to(have, "input:text")
+});
+
+--- Make it pass (application.js):
+
+- $(this).hide();
++ $(this).hide().after("<input type='text' name='val' class='editor' value='Submit' />");
+
+--- Add spec for "hides the input if escape is pressed"
+
+it("hides the input if escape is pressed", function() {
+  $("input:text").focus();
+  $("input:text").fireEvent("keydown", {keyCode: 27});
+  expect("body").to_not(have, "input:text")
+});
+
+--- Make it pass:
+
+$("input.editor:text").livequery("keydown", function(e) {
+  if(e.keyCode == 27) $(this).remove();
+});
+
+--- Add spec for "shows the original <p> again"
+
+---- Move initial spec into a "when escape is pressed describe block"
+---- Move focus() and fireEvent() into a before function
+
+it("hides the input", function() {
+  expect("body").to_not(have, "input:text");
+});
+
+it("shows the original <p> again", function() {
+  expect("p.edit_in_place").to(be_visible);
+});
+
+--- Make it pass:
+
+  $("input.editor").livequery("keydown", function(e) {
+-   if(e.keyCode == 27) $(this).remove();
++   if(e.keyCode == 27) {
++     $(this).prev().show();
++     $(this).remove();
++   }
+  })
+  
+--- Add submit spec:
+
+it("shows a submit button", function() {
+  expect("body").to(have, "input:submit.editor");
+});
+
+--- Make it pass:
+
+  $("p.edit_in_place").livequery("click", function() {
++   $(this).hide().after(
++     "<input type='text' class='editor' name='val' />" +
++     "<input type='submit' class='editor' value='Submit' />"
+  );
+  
+--- Add cancel spec:
+
+it("shows a cancel button", function() {
+  expect("body").to(have, "input:button.cancel.editor")
+});
+
+--- Make it pass (application.js):
+
+- "<input type='submit' class='editor' />"
++ "<input type='submit' class='editor' value='Submit' />" +
++ "<input type='button' class='editor cancel' value='Cancel' />"
+
+--- Add spec for cancel behavior (copy/paste from submit spec):
+
+describe("when the cancel button is pressed", function() {
+  before(function() {
+    $("input.editor.cancel").fireEvent("click");
+  });
+  
+  it("hides the input", function() {
+    expect("body").to_not(have, "input:text")
+  });
+  
+  it("shows the original <p> again", function() {
+    expect("p.edit_in_place").to(be_visible)
+  });
+});
+
+--- Make it pass:
+
+  $("p.edit_in_place").livequery("click", function() {
+    $(this).hide().after(
+-      "<input type='text' class='editor' name='val' value='Submit' />" +
++      "<p class='in_place_form'><input type='text' class='editor' name='val' />" +
+       "<input type='submit' class='editor' />" +
+-      "<input type='button' class='editor cancel' value='Cancel' />"
++      "<input type='button' class='editor cancel' value='Cancel' /></p>"
+    );
+  });
+
+  $("input.editor").livequery("keydown", function(e) {
+    if(e.keyCode == 27) {
+-      $(this).prev().show();
+-      $(this).remove();
++      $(this).parent().prev().show();
++      $(this).parent().remove();
+     }
++  });
++  
++  $("input.editor.cancel").livequery("click", function() {
++    $(this).parent().prev().show();
++    $(this).parent().remove();    
+  })
+
+--- But it should probably be a custom event:
+
++  $("p.in_place_form").livequery("cancel.editor", function() {
++    $(this).prev().show();
++    $(this).remove();
++  })
++  
+   $("input.editor").livequery("keydown", function(e) {
+     if(e.keyCode == 27) {
+-      $(this).parent().prev().show();
+-      $(this).parent().remove();
++      $(this).parent().trigger("cancel.editor")
+     }
+   });
+
+--- Write spec for hitting enter
+
++    describe("when enter is pressed, and the XHR is successful", function() {
++      before(function() {
++        Screw.XHR.returns("{\"success\": true, \"result\": \"saved text\"}", "application/json", 200); **
++        $("input.editor:submit").fireEvent("keydown", {keyCode: 13});
++      });
++      
++      it("hides the input", function() {
++        expect("body").to_not(have, "input:text");
++      });
++      
++      it("shows a <p> with the resulting text", function() {
++        expect("p.edit_in_place").to(contain_text, "saved text");
++      });
++      
++      it("calls the URL provided by metadata in the <p>", function() { **
++        expect(Screw.XHR.url).to(equal, "/text/update")
++      });
++    });
+
+--- Tweak environment
+
+   before(function() {
+-    $("body").html("<p class='edit_in_place'>Edit</p>");
++    this.originalHTML = $("body").html();
+   });
+   
++  after(function() {
++    $("body").html(this.originalHTML);
++  })
+
+--- Add metadata about what URL to go to
+
++ <p class="edit_in_place" metadata="{put:'/text/update'}">Edit</p>
+
+--- Make it pass (application.js):
+
+---- Setup metadata
++  $.metadata.setType("attr", "metadata");
+
+---- Add Ajax code (yick)
+   $("input.editor").livequery("keydown", function(e) {
++    var self = $(this);
+     if(e.keyCode == 27) {
+-      $(this).parent().trigger("cancel.editor")
++      self.parent().trigger("cancel.editor")
++    } else if(e.keyCode == 13) {
++      var url = self.parent().prev().metadata().put;
++      $.post(url, {val: self.val()}, function(json) {
++        if(json.success) {
++          self.parent().prev().html(json.result).end().trigger("cancel.editor");
++        }
++      }, "json");
+     }
+
+--- Make "XHR is successful" top-level
++      describe("when enter is pressed", function() {
++        before(function() {
++          $("input.editor:text").fireEvent("keydown", {keyCode: 13});
++        });
++        
++        it("hides the input", function() {
++          expect("body").to_not(have, "input:text");
++        });
+       
++        it("shows a <p> with the resulting text", function() {
++          expect("p.edit_in_place").to(contain_text, "saved text");
++        });
+       
++        it("calls the URL provided by metadata in the <p>", function() {
++          expect(Screw.XHR.url).to(equal, "/text/update")
++        });
+
+--- Add a new "when the submit button is clicked button" failing spec
++      describe("when the submit button is clicked", function() {
++        before(function() {
++          $("input.editor:submit").fireEvent("click");
++        });
++        
++        it("hides the input", function() {
++          expect("body").to_not(have, "input:text");
++        });
++      
++        it("shows a <p> with the resulting text", function() {
++          expect("p.edit_in_place").to(contain_text, "saved text");
++        });
++      
++        it("calls the URL provided by metadata in the <p>", function() {
++          expect(Screw.XHR.url).to(equal, "/text/update")
++        });
++      })
+
+--- Extract out everything in keyCode == 13 to a new custom event
++  $("p.in_place_form").livequery("submit.editor", function(e, self) {
++    var url = self.parent().prev().metadata().put;
++    $.post(url, {val: self.val()}, function(json) {
++      if(json.success) {
++        self.parent().prev().html(json.result).end().trigger("cancel.editor");
++      }
++    }, "json");
++  })
+
+--- Replace the original code with a custom event trigger:
+-      var url = self.parent().prev().metadata().put;
+-      $.post(url, {val: self.val()}, function(json) {
+-        if(json.success) {
+-          self.parent().prev().html(json.result).end().trigger("cancel.editor");
+-        }
+-      }, "json");
++      self.parent().trigger("submit.editor", [self])
+
+--- Make the test pass:
++  $("input.editor:submit").livequery("click", function() {
++    $(this).parent().trigger("submit.editor", [$(this).prev()])
++  })
+
+-------------------
+------ DONE ------- 
+-------------------
+
+--- Final specs:
+
+describe("Autocompleter", function() {
+  before(function() {
+    this.originalHTML = $("body").html();
+  });
+  
+  after(function() {
+    $("body").html(this.originalHTML);
+  })
+  
+  it("starts out as an p.edit_in_place", function() {
+    expect($("p.edit_in_place")).to(exist);
+  });
+  
+  describe("when clicked", function() {
+    before(function() {
+      $("p.edit_in_place").fireEvent("click");
+    });
+    
+    it("is hidden", function() {
+      expect("p.edit_in_place").to_not(be_visible);
+    });
+    
+    it("shows an input", function() {
+      expect("body").to(have, "input:text");
+    });
+    
+    it("shows a submit button", function() {
+      expect("body").to(have, "input:submit.editor");
+    });
+    
+    it("shows a cancel button", function() {
+      expect("body").to(have, "input:button.cancel.editor")
+    });
+    
+    describe("when escape is pressed", function() {
+      before(function() {
+        $("input:text").focus();
+        $("input:text").fireEvent("keydown", {keyCode: 27});
+      });
+      
+      it("hides the input", function() {
+        expect("body").to_not(have, "input:text")
+      });
+      
+      it("shows the original <p> again", function() {
+        expect("p.edit_in_place").to(be_visible)
+      });
+    });
+    
+    describe("when the cancel button is pressed", function() {
+      before(function() {
+        $("input.editor.cancel").fireEvent("click");
+      });
+      
+      it("hides the input", function() {
+        expect("body").to_not(have, "input:text")
+      });
+      
+      it("shows the original <p> again", function() {
+        expect("p.edit_in_place").to(be_visible)
+      });
+    });
+  
+    describe("when the XHR is successful", function() {
+      before(function() {
+        Screw.XHR.returns("{\"success\": true, \"result\": \"saved text\"}", "application/json", 200);
+      });
+
+      describe("when enter is pressed", function() {
+        before(function() {
+          $("input.editor:text").fireEvent("keydown", {keyCode: 13});
+        });
+        
+        it("hides the input", function() {
+          expect("body").to_not(have, "input:text");
+        });
+      
+        it("shows a <p> with the resulting text", function() {
+          expect("p.edit_in_place").to(contain_text, "saved text");
+        });
+      
+        it("calls the URL provided by metadata in the <p>", function() {
+          expect(Screw.XHR.url).to(equal, "/text/update")
+        });
+      });
+      
+      describe("when the submit button is clicked", function() {
+        before(function() {
+          $("input.editor:submit").fireEvent("click");
+        });
+        
+        it("hides the input", function() {
+          expect("body").to_not(have, "input:text");
+        });
+      
+        it("shows a <p> with the resulting text", function() {
+          expect("p.edit_in_place").to(contain_text, "saved text");
+        });
+      
+        it("calls the URL provided by metadata in the <p>", function() {
+          expect(Screw.XHR.url).to(equal, "/text/update")
+        });
+      })
+    });    
+  });
+})
+
+--- Final index:
+
+<p class="edit_in_place" metadata="{put:'/text/update'}">Edit</p>
