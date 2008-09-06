@@ -18,6 +18,12 @@ describe("Autocompleter", function() {
     
     it("shows an input", function() {
       expect($("body")).to(have, "input:text")
-    })
+    });
+    
+    it("hides the input if escape is pressed", function() {
+      $("input:text").focus();
+      $("input:text").fireEvent("keydown", [{type: "keydown", target: $("input:text")[0], keyCode: 27}]);
+      expect($("body")).to_not(have, "input:text")
+    });
   });
 })
