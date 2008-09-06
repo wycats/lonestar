@@ -1,6 +1,9 @@
 jQuery(function($) {
   $("p.edit_in_place").livequery("click", function() {
-    $(this).hide().after("<input type='text' class='editor' name='val' />");
+    $(this).hide().after(
+      "<input type='text' class='editor' name='val' />" +
+      "<input type='submit' class='editor' />"
+    );
   });
   
   $("input.editor").livequery("keydown", function(e) {
