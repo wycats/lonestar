@@ -56,7 +56,26 @@ describe("Autocompleter", function() {
       it("shows the original <p> again", function() {
         expect("p.edit_in_place").to(be_visible)
       });
-    })
+    });
+  
+    describe("when enter is pressed, and the XHR is successful", function() {
+      before(function() {
+        Screw.XHR.returns("{\"success\": true, \"result\": \"saved text\"}", 200);
+        $("input.editor:submit").fireEvent("keydown", {keyCode: 13});
+      });
+      
+      it("hides the input", function() {
+        expect("body").to_not(have, "input:text");
+      });
+      
+      it("shows a <p> with the resulting text", function() {
+        expect("p.edit_in_place").to(contain_text, "saved text");
+      });
+      
+      it("calls the URL provided by metadata in the <p>", function() {
+        expect(Screw.XHR.url).to(equal, "/text/update")
+      });
+    });
     
   });
 })

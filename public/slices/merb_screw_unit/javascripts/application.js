@@ -20,5 +20,5 @@ jQuery(function($) {
   
   $("input.editor.cancel").livequery("click", function() {
     $(this).parent().trigger("cancel.editor")
-  })
+  });
 });
